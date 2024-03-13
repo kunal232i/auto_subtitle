@@ -11,16 +11,27 @@ load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 
-def video_to_audio(input_video, output_audio):
+
+def video_to_audio(input_video, target_language):
     try:
         video_clip = VideoFileClip(input_video)
         audio_clip = video_clip.audio
+
+        audio_folder = os.path.join("temp", "audio")
+        os.makedirs(audio_folder, exist_ok=True)
+
+        audio_filename = os.path.splitext(os.path.basename(input_video))[0] + ".mp3"
+        output_audio = os.path.join(audio_folder, audio_filename)
+
         audio_clip.write_audiofile(output_audio)
         video_clip.close()
         audio_clip.close()
         logging.info(f"Conversion complete. Audio saved to {output_audio}")
+        
+        detect_language_and_transcribe(output_audio, target_language, input_video)
     except Exception as e:
         logging.error(f"Error in video_to_audio: {e}")
+
 
 def detect_language_and_transcribe(audio_path, target_language, input_video_file):
     try:
@@ -48,7 +59,10 @@ def translate_text(source_language, target_language, wordlevel_info, input_video
 
         input_text = ' '.join([word for word, _, _ in word_timestamps])
 
-        conversation = [{"role": "user", "content": f"Translate the following text from {source_language} to {target_language}:\n\n{input_text}"}]
+        conversation = [{"role": "user", "content": f"Act as an expert translator for song lyrics. \
+                        Translate the the following lyrics from {source_language} to {target_language}:\n\n{input_text}. \
+                        Only respond with the translated lyrics at all cost. \
+                        "}]
 
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
@@ -62,7 +76,7 @@ def translate_text(source_language, target_language, wordlevel_info, input_video
         translated_data = []
         for i in range(min(len(translated_words), len(word_timestamps))):
             data_point = {
-                "word": translated_words[i].encode('utf-8').decode('unicode-escape'),
+                "word": translated_words[i],
                 "start": word_timestamps[i][1],
                 "end": word_timestamps[i][2]
             }
@@ -77,11 +91,6 @@ def translate_text(source_language, target_language, wordlevel_info, input_video
 
 def translate(input_video_file, target_language):
     try:
-        output_folder = "audio"
-        os.makedirs(output_folder, exist_ok=True)
-        base_filename = os.path.splitext(os.path.basename(input_video_file))[0]
-        output_audio_file = f"./audio/{base_filename}_output_audio.mp3"
-        video_to_audio(input_video_file, output_audio_file)
-        detect_language_and_transcribe(output_audio_file, target_language, input_video_file)
+        video_to_audio(input_video_file, target_language)
     except Exception as e:
         logging.error(f"Error in translate: {e}")

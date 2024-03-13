@@ -1,44 +1,96 @@
-# Project
+# Demo
+
+-
+
+## Prerequisites
+
+Make sure you have the following installed:
+
+- Python 3.7 or later
+- [pip](https://pip.pypa.io/en/stable/installation/)
 
 ## Setup
 
-### For Windows
+1. Create a virtual environment:
 
-```bash
-python -m venv venv
-.\venv\Scripts\activate
-pip install -r requirements.txt
-```
+   ```bash
+   python3 -m venv venv
+   ```
 
-### For Mac/Linux
+2. Activate the virtual environment:
 
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
+   - On Linux/macOS:
 
-### Environment Variable setup
+     ```bash
+     source venv/bin/activate
+     ```
 
-Run the following command to set up the environment variables:
+   - On Windows (Command Prompt):
 
-```bash
-mv .env.example .env
-```
+     ```bash
+     .\venv\Scripts\activate
+     ```
 
-Now, open the `.env` file and add the required key for the "openAI" configuration.
+     On Windows (PowerShell):
 
-## Usage
+     ```bash
+     .\venv\Scripts\Activate.ps1
+     ```
 
-```bash
-python main.py --video path/to/your/video.mp4 --target_language desired_language
-```
+3. Install dependencies:
 
-- `--video`: Path to the video file.
-- `--target_language`: Target language for subtitles conversion. Default is "en".
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Make sure to replace `path/to/your/video.mp4` with the actual path to your video file and specify the desired language for subtitles conversion.
+## Run the Application
 
-Feel free to customize the command based on your requirements.
+1. Start the FastAPI application:
 
-**Note**: Ensure that you have activated the virtual environment before running the commands.
+   ```bash
+   uvicorn main:app --reload
+   ```
+
+   This will launch the FastAPI development server. The `--reload` option enables automatic reloading of the server upon code changes during development.
+
+2. Open your web browser and go to [http://localhost:8000](http://localhost:8000) to access the FastAPI Swagger documentation.
+
+## API Endpoints
+
+## 1. Home Page
+
+- **Endpoint**: `/`
+- **Method**: GET
+- **Response Type**: HTML
+- **Description**: Renders the home page using the Jinja2 template `index.html`.
+
+## 2. Video Translation
+
+- **Endpoint**: `/translate`
+- **Method**: POST
+- **Parameters**:
+  - `video`: File (required) - The video file to be translated.
+  - `target_language`: Form field (optional, default: 'en') - The target language for translation.
+- **Response Type**: JSON
+- **Description**: Uploads a video file, translates its subtitles to the specified target language, and returns a success message.
+
+## 3. List Videos
+
+- **Endpoint**: `/videos`
+- **Method**: GET
+- **Response Type**: JSON
+- **Description**: Retrieves a list of video keys from the specified AWS S3 bucket (`clps-media`).
+
+## 4. Get Video Stream
+
+- **Endpoint**: `/videos/{video_key}`
+- **Method**: GET
+- **Parameters**:
+  - `video_key`: Path parameter (required) - The key of the video in the AWS S3 bucket.
+- **Response Type**: Video Streaming (video/mp4)
+- **Description**: Streams the specified video from the AWS S3 bucket.
+
+## Notes
+
+- The application assumes the existence of a `temp` folder to store temporary video files during translation.
+- Logging is configured to display INFO-level messages.
